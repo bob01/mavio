@@ -175,6 +175,22 @@ void updatePWM() {
     }
 }
 
+boolean getBit(byte Reg, byte whichBit) {
+    boolean State;
+    State = Reg & (1 << whichBit);
+    return State;
+}
+
+byte setBit(byte &Reg, byte whichBit, boolean stat) {
+    if (stat) {
+        Reg = Reg | (1 << whichBit);
+    } 
+    else {
+        Reg = Reg & ~(1 << whichBit);
+    }
+    return Reg;
+}
+
 boolean getLBit(byte Reg, byte whichBit) {
   boolean State;
   switch(whichBit) {

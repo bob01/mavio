@@ -69,9 +69,9 @@
 #define PSTR(s) (__extension__({static prog_char __c[] PROGMEM = (s); &__c[0];})) 
 
 #define MAVLINK10     // Are we listening MAVLink 1.0 or 0.9   (0.9 is obsolete now)
-#define HEARTBEAT     // HeartBeat signal
+//#define HEARTBEAT     // HeartBeat signal
 #define SERDB         // Output debug information to SoftwareSerial 
-#define ONOFFSW       // Do we have OnOff switch connected in pins 
+//#define ONOFFSW       // Do we have OnOff switch connected in pins 
 
 /* **********************************************/
 /* ***************** INCLUDES *******************/
@@ -108,8 +108,10 @@
 // Configurations
 #include "IOBoard.h"
 #include "IOEEPROM.h"
+#include "Vars.h"
 
 #define CHKVER 40
+
 //#define DUMPEEPROM            // Should not be activated in repository code, only for debug
 //#define DUMPEEPROMTELEMETRY   // Should not be activated in repository code, only for debug
 #define NEWPAT
@@ -135,8 +137,10 @@
 
 #define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
 
+#ifdef SERDB
 #define DPL if(debug) dbSerial.println 
 #define DPN if(debug) dbSerial.print
+#endif
 
 /* Patterns and other variables */
 static byte LeRiPatt = NOMAVLINK; // default pattern is full ON
@@ -149,7 +153,6 @@ static int curPwm;
 static int prePwm;
 
 int messageCounter;
-static bool mavlink_active;
 byte hbStatus;
 
 byte voltAlarm;  // Alarm holder for internal voltage alarms, trigger 4 volts
@@ -178,16 +181,20 @@ SoftwareSerial dbSerial(6,5);
 
 void setup() 
 {
-
   // Initialize Serial port, speed
   Serial.begin(TELEMETRY_SPEED);
   
 #ifdef SERDB
   // Our software serial is connected on pins D6 and D5
-  dbSerial.begin(57600);
-  DPL("Debug Serial ready... ");
-  DPL("No input from this serialport.  ");
+  if(debug)
+  {
+      dbSerial.begin(57600);
+      DPL("Debug Serial ready... ");
+      DPL("No input from this serialport.  ");
+  }
 #endif  
+
+  // reset EEPROM if pin 11 LOW on init
   if(digitalRead(11) == 0) {
     DPL("Force erase pin LOW, Eracing EEPROM");
     DPN("Writing EEPROM...");
@@ -195,49 +202,13 @@ void setup()
     DPL(" done.");
   }
   
-
   // Check that EEPROM has initial settings, if not write them
   if(readEEPROM(CHK1) + readEEPROM(CHK2) != CHKVER) {
-#ifdef DUMPEEPROMTELEMETRY
-    Serial.print(CHK1);
-    Serial.print(",");
-    Serial.print(CHK2);
-    Serial.print(",");
-    Serial.println(CHKVER);
-#endif    
     // Write factory settings on EEPROM
     DPN("Writing EEPROM...");
     writeFactorySettings();
     DPL(" done.");
   }
- 
-#ifdef DUMPEEPROM
-  // For debug needs, should never be activated on real-life
-  for(int edump = 0; edump <= 24; edump ++) {
-   DPN("EEPROM SLOT: ");
-   DPN(edump);
-   DPN(" VALUE: ");
-   DPL(readEEPROM(edump));     
-  }
-
-  // For debug needs, should never be activated on real-life
-  for(int edump = 60; edump <= 80; edump ++) {
-   DPN("EEPROM SLOT: ");
-   DPN(edump);
-   DPN(" VALUE: ");
-   DPL(readEEPROM(edump));     
-  }
-#endif
-
-#ifdef DUMPEEPROMTELEMETRY
-  // For debug needs, should never be activated on real-life
-  for(int edump = 0; edump <= 140; edump ++) {
-   Serial.print("EEPROM SLOT: ");
-   Serial.print(edump);
-   Serial.print(" VALUE: ");
-   Serial.println(readEEPROM(edump), DEC);     
-  }
-#endif
     
   // Rear most important values from EEPROM to their variables  
   LEFT = readEEPROM(LEFT_IO_ADDR);
@@ -250,48 +221,30 @@ void setup()
   mavlink_comm_0_port = &Serial;
 
   // Initializing output pins
-  for(int looper = 0; looper <= 5; looper++) {
-    pinMode(Out[looper],OUTPUT);
+  for(int i = 0; i <= 5; i++) {
+    pinMode(Out[i],OUTPUT);
   }
 
-  // Initial 
-  for(int loopy = 0; loopy <= 5; loopy++) {
+  // Init sequence - cycle segments...
+  for(int i = 0; i <= 5; i++) {
    SlowRoll(25); 
   }
 
-  for(int loopy = 0; loopy <= 2 ; loopy++) {
+  // ... then flash twice
+  for(int i = 0; i <= 2 ; i++) {
     AllOn();
     delay(100);
     AllOff();
     delay(100);
   }
 
-  // Activate Left/Right lights
-  updateBase();
-
-  // Jani's debug stuff  
-#ifdef membug
-  Serial.println(freeMem());
-  DPL(freeMem());
-#endif
-
   // Startup MAVLink timers, 50ms runs
-  // this affects pattern speeds too.
+  // this affects pattern speeds too - 50hz timing important here
   mavlinkTimer.Set(&OnMavlinkTimer, 50);
 
-  // House cleaning, enable timers
+  // enable timers
   mavlinkTimer.Enable();
-  
-  // Enable MAV rate request, yes always enable it for in case.   
-  // if MAVLink flows correctly, this flag will be changed to DIS
-  enable_mav_request = EN;  
-  
-  
-  // for now we are always active, maybe in future there will be some
-  // additional features like light conditions that changes it.
-  isActive = EN;  
-  
-  
+
 } // END of setup();
 
 
@@ -303,62 +256,22 @@ void setup()
 // MainLoop()
 void loop() 
 {
-
-#ifdef HEARTBEAT
-  HeartBeat();   // Update heartbeat LED on pin = ledPin (usually D13)
-#endif
-
-  if(isActive) { // main loop
-    p_curMillis = millis();
-    if(p_curMillis - p_preMillis > p_delMillis) {
-      // save the last time you blinked the LED 
-      p_preMillis = p_curMillis;   
-
-      // First we update pattern positions 
-      patt_pos++;
-      if(patt_pos == 16) patt_pos = 0;
-    }
-
-    // Update base lights if any
-    updateBase();
-  
     if(enable_mav_request == 1) { //Request rate control
-      //DPL("IN ENA REQ");
-      // During rate requsst, LEFT/RIGHT outputs are HIGH
-      digitalWrite(LEFT, EN);
-      digitalWrite(RIGHT, EN);
-
       for(int n = 0; n < 3; n++) {
         request_mavlink_rates();   //Three times to certify it will be readed
         delay(50);
       }
       enable_mav_request = 0;
 
-      // 2 second delay, during delay we still update PWM output
-      for(int loopy = 0; loopy <= 2000; loopy++) {
-        delay(1);
-        updatePWM();
-      }
+      // wait 2 seconds...
+      delay(2000);
+
       waitingMAVBeats = 0;
       lastMAVBeat = millis();    // Preventing error from delay sensing
-      //DPL("OUT ENA REQ");
-    }  
-  
-    // Request rates again on every 10th check if mavlink is still dead.
-    if(!mavlink_active && messageCounter == 10) {
-      DPL("Enabling requests again");
-      enable_mav_request = 1;
-      messageCounter = 0;
-      LeRiPatt = 6;
     } 
     
     read_mavlink();
     mavlinkTimer.Run();
-
-    updatePWM(); 
-
-  } else AllOff();
-
 }
 
 /* *********************************************** */
@@ -367,46 +280,16 @@ void loop()
 // Function that is called every 120ms
 void OnMavlinkTimer()
 {
-  if(millis() < (lastMAVBeat + 3000)) {
-           
-    // General condition checks starts from here
-    //
-      
-    // Checks that we handle only if MAVLink is active
-    if(mavlink_active) {
-      if(iob_fix_type <= 2) LeRiPatt = ALLOK;
-//      if(iob_fix_type <= 2) LeRiPatt = NOLOCK;
-      if(iob_fix_type >= 3) LeRiPatt = ALLOK;
-  //   DPL(iob_fix_type, DEC); 
-  //   DPL(iob_satellites_visible, DEC); 
-  
-      // CPU board voltage alarm  
-      if(voltAlarm) {
-        LeRiPatt = LOWVOLTAGE;  
-        DPL("ALARM, low voltage");
-      }     
+    if(millis() < lastMAVBeat + 3000)
+    {
+        // MAV alive - last MAVbeat less than 3s ago
+        // TODO: run pattern
     }
-        
-    // If we are armed, run patterns on read output
-    if(isArmed) RunPattern();
-     else ClearPattern();
-    
-    // Update base LEDs  
-    updateBase();
-  
-    if(messageCounter >= 3 && mavlink_active) {
-      DPL("We lost MAVLink");
-      mavlink_active = 0;
-      messageCounter = 0;
-      LeRiPatt = NOMAVLINK;
+    else
+    {
+        // MAV dead 
+        // TODO: dead flash
     }
-  //  DPL(messageCounter);
-  
-  // End of OnMavlinkTimer
-  } else {
-    waitingMAVBeats = 1;
-    LeRiPatt = NOMAVLINK;
-  }
 }
 
 
