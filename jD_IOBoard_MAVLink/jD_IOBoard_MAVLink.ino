@@ -189,19 +189,19 @@ void setup()
     // Init sequence
     // cycle segments...
     for(int i = 0; i <= 5; i++) {
-        CycleOuputs(25); 
+        cycleOuputs(50); 
     }
     // ... then flash twice
     for(int i = 0; i <= 2 ; i++) {
-        SetOutputs(HIGH);
+        setOutputs(HIGH);
         delay(100);
-        SetOutputs(LOW);
+        setOutputs(LOW);
         delay(100);
     }
 
     // Startup MAVLink timers, 50ms intervals
     // this affects pattern speeds too - 50hz timing important here
-    mavlinkTimer.Set(&OnMavlinkTimer, 50);
+    mavlinkTimer.Set(&onMavlinkTimer, 50);
 
     // enable timers
     mavlinkTimer.Enable();
@@ -239,18 +239,16 @@ void loop()
 /* ******** functions used in main loop() ******** */
 
 // Function that is called every 120ms
-void OnMavlinkTimer()
+void onMavlinkTimer()
 {
-    if(millis() < lastMAVBeat + 3000)
+    if(millis() > lastMAVBeat + 3000)
     {
-        // MAV alive - last MAVbeat less than 3s ago
-        // TODO: run pattern
+        // MAV dead - last MAVbeat more than 3s ago
+        setPattern(PATT_NOMAVLINK);
     }
-    else
-    {
-        // MAV dead 
-        // TODO: dead flash
-    }
+
+    // apply pattern
+    runPattern();
 }
 
 

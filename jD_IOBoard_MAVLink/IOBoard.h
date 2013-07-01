@@ -1,10 +1,17 @@
 ///////////////////////////
+// Constants
+
+#define PATT_UNKNOWN            0
+#define PATT_NOMAVLINK          17
+
+
+///////////////////////////
 // Global variables
 
-static int Out[] = {8,9,10,4,3,2};   // Output I/O pin array
+static int Out[] = { 8, 9, 10, 4, 3, 2 };   // Output I/O pin array
 
 static byte patt_pos;
-static byte patt;
+static byte patt = PATT_UNKNOWN;
 static byte pattByteA;
 static byte pattByteB;
 
@@ -18,14 +25,14 @@ static uint8_t  apm_mav_component;
 static boolean  enable_mav_request = 0;
 
 // read from MAVLink
-static bool motor_armed = 0;
+static bool ml_motor_armed = 0;
 
-static uint8_t base_mode=0;
-static uint8_t osd_mode = 0;
-static uint8_t osd_nav_mode = 0;
+static uint8_t ml_base_mode=0;
+static uint8_t ml_mode = 0;
+static uint8_t ml_nav_mode = 0;
 
-static float osd_vbat_A = 0;
-static int8_t osd_battery_remaining_A = 0;
+static float ml_vbat_A = 0;
+static int8_t ml_battery_remaining_A = 0;
 
-static uint16_t chan3_raw = 0;
-static uint16_t osd_chan8_raw = 1000;
+static uint16_t ml_chan3_raw = 0;
+static int16_t ml_chan8_scaled = -1000;

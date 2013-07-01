@@ -46,13 +46,13 @@ void read_mavlink(){
                     apm_mav_component = msg.compid;
                     apm_mav_type      = mavlink_msg_heartbeat_get_type(&msg);
 
-                    osd_mode = (uint8_t)mavlink_msg_heartbeat_get_custom_mode(&msg);
+                    ml_mode = (uint8_t)mavlink_msg_heartbeat_get_custom_mode(&msg);
 
                     //Mode (arducoper armed/disarmed)
-                    base_mode = mavlink_msg_heartbeat_get_base_mode(&msg);
-                    motor_armed = getBit(base_mode,7);
+                    ml_base_mode = mavlink_msg_heartbeat_get_base_mode(&msg);
+                    ml_motor_armed = getBit(ml_mode,7);
 
-                    osd_nav_mode = 0;          
+                    ml_nav_mode = 0;          
                     lastMAVBeat = millis();
                     if(waitingMAVBeats == 1){
                         enable_mav_request = 1;
@@ -61,15 +61,15 @@ void read_mavlink(){
                 break;
             case MAVLINK_MSG_ID_SYS_STATUS:
                 {
-                    osd_vbat_A = (mavlink_msg_sys_status_get_voltage_battery(&msg) / 1000.0f); //Battery voltage, in millivolts (1 = 1 millivolt)
-                    osd_battery_remaining_A = mavlink_msg_sys_status_get_battery_remaining(&msg); //Remaining battery energy: (0%: 0, 100%: 100)
+                    ml_vbat_A = (mavlink_msg_sys_status_get_voltage_battery(&msg) / 1000.0f); //Battery voltage, in millivolts (1 = 1 millivolt)
+                    ml_battery_remaining_A = mavlink_msg_sys_status_get_battery_remaining(&msg); //Remaining battery energy: (0%: 0, 100%: 100)
                 }
                 break;
 
             case MAVLINK_MSG_ID_RC_CHANNELS_RAW:
                 {
-                    chan3_raw = mavlink_msg_rc_channels_raw_get_chan3_raw(&msg);
-                    osd_chan8_raw = mavlink_msg_rc_channels_raw_get_chan8_raw(&msg);
+                    ml_chan3_raw = mavlink_msg_rc_channels_raw_get_chan3_raw(&msg);
+                    ml_chan8_scaled = mavlink_msg_rc_channels_scaled_get_chan8_scaled(&msg);
                 }
                 break;
 
