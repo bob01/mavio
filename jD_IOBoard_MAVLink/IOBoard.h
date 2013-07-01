@@ -1,11 +1,3 @@
-
-
-// Some basic defualts
-#define EN  1     // Enable value
-#define DI  0     // Disable value
-#define TRUE 1    // Like we would not know what true is
-#define FALSE 0   // or this too...
-
 // Flight mode defines
 #define STAB 0
 #define ACRO 1
