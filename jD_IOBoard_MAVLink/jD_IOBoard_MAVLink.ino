@@ -108,18 +108,17 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 // Configurations
 #include "IOBoard.h"
 #include "IOEEPROM.h"
-#include "Vars.h"
 
 #define CHKVER 80
 
 //#define DUMPEEPROM            // Should not be activated in repository code, only for debug
 //#define DUMPEEPROMTELEMETRY   // Should not be activated in repository code, only for debug
-#define NEWPAT
+
 
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
-#define VER "v1.4"
+#define VER "v1.4_tb_plus"
 
 // These are not in real use, just for reference
 //#define O1 8      // High power Output 1
@@ -130,12 +129,6 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 //#define O6 2      // High power Output 6
 
 #define TELEMETRY_SPEED  57600  // How fast our MAVLink telemetry is coming to Serial port
-
-/* Patterns and other variables */
-static byte LeRiPatt = NOMAVLINK; // default pattern is full ONz
-
-byte ledState;
-byte baseState;  // Bit mask for different basic output LEDs like so called Left/Right 
 
 byte debug = 0;  // Shoud not be activated on repository code, only for debug
 
@@ -150,6 +143,7 @@ SimpleTimer  mavlinkTimer;
 #define DPN if(debug) dbSerial.print
 SoftwareSerial dbSerial(6,5);
 #endif
+
 
 /* **********************************************/
 /* ***************** SETUP() *******************/
@@ -186,13 +180,6 @@ void setup()
         writeFactorySettings();
         DPL(" done.");
     }
-
-    // Rear most important values from EEPROM to their variables  
-    LEFT = readEEPROM(LEFT_IO_ADDR);
-    RIGHT = readEEPROM(RIGHT_IO_ADDR);
-    FRONT = readEEPROM(FRONT_IO_ADDR);
-    REAR = readEEPROM(REAR_IO_ADDR);
-    ledPin = readEEPROM(LEDPIN_IO_ADDR);
 
     // Initializing output pins
     for(int i = 0; i <= 5; i++) {

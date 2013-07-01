@@ -1,7 +1,5 @@
 /*
-
-jD-IOBoard general funcion calls
-
+general funcion calls
 
 */
 
@@ -24,62 +22,20 @@ void SetOutputs(uint8_t state) {
 }
 
 
-// Our generic flight modes for ArduCopter & ArduPlane
-void CheckFlightMode() {
-    byte loopPos;
-
-    if(apm_mav_type == 2) { // ArduCopter MultiRotor or ArduCopter Heli
-        if(iob_mode == 0) flMode = STAB;   // Stabilize
-        if(iob_mode == 1) flMode = ACRO;   // Acrobatic
-        if(iob_mode == 2) flMode = ALTH;   // Alt Hold
-        if(iob_mode == 3) flMode = AUTO;   // Auto
-        if(iob_mode == 4) flMode = GUID;   // Guided
-        if(iob_mode == 5) flMode = LOIT;   // Loiter
-        if(iob_mode == 6) flMode = RETL;   // Return to Launch
-        if(iob_mode == 7) flMode = CIRC;   // Circle
-        if(iob_mode == 8) flMode = POSI;   // Position
-        if(iob_mode == 9) flMode = LAND;   // Land
-        if(iob_mode == 10) flMode = OFLO;  // OF_Loiter
-    }
-    else if(apm_mav_type == 1) { // ArduPlane
-        if(iob_mode == 2 ) flMode = STAB;  // Stabilize
-        if(iob_mode == 0) flMode = MANU;   // Manual
-        if(iob_mode == 12) flMode = LOIT;  // Loiter
-        if(iob_mode == 11 ) flMode = RETL; // Return to Launch
-        if(iob_mode == 5 ) flMode = FBWA;  // FLY_BY_WIRE_A
-        if(iob_mode == 6 ) flMode = FBWB;  // FLY_BY_WIRE_B
-        if(iob_mode == 15) flMode = GUID;  // GUIDED
-        if(iob_mode == 10 ) flMode = AUTO; // AUTO
-        if(iob_mode == 1) flMode = CIRC;   // CIRCLE
-    }
-
-    DPL(mbind01_ADDR + flMode);
-    while(flMode != readEEPROM(mbind01_ADDR + (loopPos))) {
-        DPL(flMode);
-        loopPos = loopPos + 2;
-    }    
-    DPL(loopPos);
-
-    pattByteA = readEEPROM(pat01_ADDR + loopPos);
-    pattByteB = readEEPROM(pat01_ADDR + (loopPos + 1));
-    DPL(pattByteA, BIN);
-    DPL(pattByteB, BIN); 
-}
-
 // Update main pattern
 void RunPattern() {
     if((patt_pos & 0x08) == 0) {
         // pos [0 - 7], use byteA
-        digitalWrite(REAR, getPatternState(pattByteA, patt_pos));
+        SetOutputs(getPatternState(pattByteA, patt_pos));
     } else {
         // pos [8 - 15], use byteB
-        digitalWrite(REAR, getPatternState(pattByteB, patt_pos & 0x07));
+        SetOutputs(getPatternState(pattByteB, patt_pos & 0x07));
     }
 }
 
 // Clear main pattern
 void ClearPattern() {
-    digitalWrite(REAR, LOW);
+    SetOutputs(LOW);
 }
 
 
