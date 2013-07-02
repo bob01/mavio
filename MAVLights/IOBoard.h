@@ -2,8 +2,8 @@
 // Constants
 
 #define PATT_UNKNOWN            0
-#define PATT_FAILSAFE           14
-#define PATT_NOMAVLINK          17
+#define PATT_NOMAVLINK          16
+#define PATT_FAILSAFE           18
 
 
 ///////////////////////////
