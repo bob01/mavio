@@ -27,6 +27,7 @@ static boolean  enable_mav_request = 0;
 
 // read from MAVLink
 static bool ml_motor_armed = 0;
+static bool ml_motor_armed_prev = 0;
 
 static uint8_t ml_base_mode=0;
 static uint8_t ml_mode = 0;

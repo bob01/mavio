@@ -50,7 +50,7 @@ void read_mavlink(){
 
                     //Mode (arducoper armed/disarmed)
                     ml_base_mode = mavlink_msg_heartbeat_get_base_mode(&msg);
-                    ml_motor_armed = getBit(ml_mode,7);
+                    ml_motor_armed = getBit(ml_base_mode,7);
 
                     ml_nav_mode = 0;          
                     lastMAVBeat = millis();

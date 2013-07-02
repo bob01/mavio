@@ -254,6 +254,28 @@ void onMavlinkTimer()
         // failsafe
         setPattern(PATT_FAILSAFE);
     }
+    else if(ml_motor_armed != ml_motor_armed_prev)
+    {
+        // arm/disarm sequence - bracket with 1s quiet time
+        setOutputs(LOW);
+        delay(500);
+
+        // flash 3 times for amed, 1 time for dis-armed
+        int flashes = ml_motor_armed ? 3 : 1;
+        for(int i = 0; i < flashes; i++)
+        {
+            setOutputs(HIGH);
+            delay(200);
+            setOutputs(LOW);
+            delay(400);
+        }
+
+        setOutputs(LOW);
+        delay(600);
+
+        // armed state changed
+        ml_motor_armed_prev = ml_motor_armed;
+    }
     else
     {
         // MAV ok, set pattern from CH-8
