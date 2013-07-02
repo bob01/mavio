@@ -54,7 +54,7 @@ void writeFactorySettings() {
 
 
  // Default patterns 1-16, BIN 
- writeEP2(pat01_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat01_ADDR, 0b10100000, 0b00000000);
  writeEP2(pat02_ADDR, 0b10000000, 0b00000000);
  writeEP2(pat03_ADDR, 0b11111100, 0b00000100);
  writeEP2(pat04_ADDR, 0b11001100, 0b00000000);
@@ -64,12 +64,12 @@ void writeFactorySettings() {
  writeEP2(pat08_ADDR, 0b10100000, 0b10100000);
  writeEP2(pat09_ADDR, 0b11000000, 0b11000000);
  writeEP2(pat10_ADDR, 0b10000000, 0b10000000);
- writeEP2(pat11_ADDR, 0b10100000, 0b00000000);
+ writeEP2(pat11_ADDR, 0b00000000, 0b00000000);  // CENTER PWM
  writeEP2(pat12_ADDR, 0b10101010, 0b00000000);
  writeEP2(pat13_ADDR, 0b11111111, 0b11110101);
- writeEP2(pat14_ADDR, 0b11110000, 0b11110000);
+ writeEP2(pat14_ADDR, 0b11110000, 0b11110000);  // FAILSAFE
  writeEP2(pat15_ADDR, 0b11111111, 0b00000000);
- writeEP2(pat16_ADDR, 0b11111111, 0b11111111);
+ writeEP2(pat16_ADDR, 0b10000000, 0b10000000);
 
  /*
  // Default patterns 1-16, BIN 
@@ -94,9 +94,9 @@ void writeFactorySettings() {
  // Default patterns 17-32
  // Reserved, write full NULL, BIN 
  writeEP2(pat17_ADDR, 0b11001100, 0b11001100);  // NOMAVLINK
- writeEP2(pat18_ADDR, 0b00000000, 0b00000000);
- writeEP2(pat19_ADDR, 0b00000000, 0b00000000);
- writeEP2(pat20_ADDR, 0b00000000, 0b00000000);
+ writeEP2(pat18_ADDR, 0b11000000, 0b00000000);
+ writeEP2(pat19_ADDR, 0b11111111, 0b11111111);
+ writeEP2(pat20_ADDR, 0b11111111, 0b11111111);
  writeEP2(pat21_ADDR, 0b00000000, 0b00000000);
  writeEP2(pat22_ADDR, 0b00000000, 0b00000000);
  writeEP2(pat23_ADDR, 0b00000000, 0b00000000);

@@ -69,7 +69,7 @@ void read_mavlink(){
             case MAVLINK_MSG_ID_RC_CHANNELS_RAW:
                 {
                     ml_chan3_raw = mavlink_msg_rc_channels_raw_get_chan3_raw(&msg);
-                    ml_chan8_scaled = mavlink_msg_rc_channels_scaled_get_chan8_scaled(&msg);
+                    ml_chan8_raw = mavlink_msg_rc_channels_raw_get_chan8_raw(&msg);
                 }
                 break;
 

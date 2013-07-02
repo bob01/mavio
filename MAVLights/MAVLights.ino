@@ -118,7 +118,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
-#define VER "v1.4_tb_plus"
+#define VER "v1.6_tb_plus"
 
 // These are not in real use, just for reference
 //#define O1 8      // High power Output 1
@@ -199,6 +199,9 @@ void setup()
         delay(100);
     }
 
+    // pause 2 seconds to highlight startup sequence
+    delay(2000);
+
     // Startup MAVLink timers, 50ms intervals
     // this affects pattern speeds too - 50hz timing important here
     mavlinkTimer.Set(&onMavlinkTimer, 50);
@@ -245,6 +248,24 @@ void onMavlinkTimer()
     {
         // MAV dead - last MAVbeat more than 3s ago
         setPattern(PATT_NOMAVLINK);
+    }
+    else if(ml_chan3_raw < 1000)
+    {
+        // failsafe
+        setPattern(PATT_FAILSAFE);
+    }
+    else
+    {
+        // MAV ok, set pattern from CH-8
+        // normalize range to [0 - 799]
+        int16_t nch = ml_chan8_raw - 1100;
+        if(nch < 0)
+            nch = 0;
+        else if(nch >= 800)
+            nch = 799;
+
+        // convert range to pattern index [ 1 - 20 ]
+        setPattern((nch / 40) + 1);
     }
 
     // apply pattern

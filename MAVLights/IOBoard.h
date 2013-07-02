@@ -2,6 +2,7 @@
 // Constants
 
 #define PATT_UNKNOWN            0
+#define PATT_FAILSAFE           14
 #define PATT_NOMAVLINK          17
 
 
@@ -34,5 +35,5 @@ static uint8_t ml_nav_mode = 0;
 static float ml_vbat_A = 0;
 static int8_t ml_battery_remaining_A = 0;
 
-static uint16_t ml_chan3_raw = 0;
-static int16_t ml_chan8_scaled = -1000;
+static uint16_t ml_chan3_raw = 1100;
+static uint16_t ml_chan8_raw = 0;
