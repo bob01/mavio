@@ -279,7 +279,7 @@ void onMavlinkTimer()
     else
     {
         // MAV ok, set pattern from CH-8
-        // normalize range to [0 - 799]
+        // normalize range from [1100 - 1899] to [0 - 799]
         int16_t nch = ml_chan8_raw - 1100;
         if(nch < 0)
             nch = 0;
