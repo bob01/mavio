@@ -118,7 +118,7 @@ along with this program. If not, see <http://www.gnu.org/licenses/>
 /* *************************************************/
 /* ***************** DEFINITIONS *******************/
 
-#define VER "v1.6_tb_plus"
+#define VER "v1.6.1-tb_plus"
 
 // These are not in real use, just for reference
 //#define O1 8      // High power Output 1
@@ -276,19 +276,20 @@ void onMavlinkTimer()
         // armed state changed
         ml_motor_armed_prev = ml_motor_armed;
     }
-    else
+    else if(ml_chan8_raw < 1700)
     {
-        // MAV ok, set pattern from CH-8
-        // normalize range from [1100 - 1899] to [0 - 799]
+        // MAV ok, set pattern from CH8
+        // normalize range from [1100 - 1699] to [0 - 599]
         int16_t nch = ml_chan8_raw - 1100;
         if(nch < 0)
             nch = 0;
-        else if(nch >= 800)
-            nch = 799;
+        else if(nch >= 600)
+            nch = 599;
 
         // convert range to pattern index [ 1 - 20 ]
-        setPattern((nch / 40) + 1);
+        setPattern((nch / 30) + 1);
     }
+    // else - CH8 PWM > 1700ms - ignore, may be CH8_OPT activity
 
     // apply pattern
     runPattern();
