@@ -1,0 +1,1 @@
+Use board type: Arduino Nano w/ ATmega328
